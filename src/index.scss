@@ -1,10 +1,9 @@
-@import url("https://fonts.googleapis.com/css?family=Special+Elite&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Open+Sans+Condensed&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Alegreya:wght@400&family=Lora:wght@700&display=swap');
 
-$font-family-base: "Open Sans Condensed", sans-serif;
-$headings-font-family: "Special Elite", cursive;
+$font-family-base: 'Alegreya', serif;
+$headings-font-family: 'Lora', serif;
 
-@import "node_modules/bootstrap/scss/bootstrap.scss";
+@import 'node_modules/bootstrap/scss/bootstrap.scss';
 
 html {
   height: 100%;
@@ -15,5 +14,9 @@ html {
     background-position: center center;
     background-size: cover;
     background-repeat: no-repeat;
+    overflow-x: hidden;
+    #root {
+      background-color: rgba(0, 0, 0, 0.57);
+    }
   }
 }
