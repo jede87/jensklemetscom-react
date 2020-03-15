@@ -1,0 +1,19 @@
+@import url("https://fonts.googleapis.com/css?family=Special+Elite&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans+Condensed&display=swap");
+
+$font-family-base: "Open Sans Condensed", sans-serif;
+$headings-font-family: "Special Elite", cursive;
+
+@import "node_modules/bootstrap/scss/bootstrap.scss";
+
+html {
+  height: 100%;
+  body {
+    height: 100%;
+    background-color: #222222;
+    background-image: url(./assets/images/1280.jpg);
+    background-position: center center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+}
