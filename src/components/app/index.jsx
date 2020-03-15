@@ -15,7 +15,7 @@ export default () => {
           </div>
         </div>
       </header>
-      <main className="container mt-5">
+      <main className="container mt-4">
         <div className="row">
           <div className="col-6">
             <Fade left delay={600}>
