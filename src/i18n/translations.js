@@ -7,9 +7,9 @@ export const translations = {
     topbar: { mark: 'JK' },
     hero: {
       name: 'Jens Klemets',
-      roles: ['Utvecklare', 'AI', 'technoDJ'],
+      roles: ['Utvecklare', 'AI', 'DJ'],
       intro:
-        'Erfaren mjukvaruutvecklare med ett brinnande intresse för AI. Utanför koden lägger jag musik på fester, bröllop och event i Stockholmsområdet.',
+        'Erfaren mjukvaruutvecklare med ett brinnande intresse för AI. Utanför koden spelar jag på fester, bröllop och event i Stockholmsområdet.',
       ctaBook: 'Skicka bokningsförfrågan',
       ctaWork: 'Vad jag gör',
     },
@@ -30,12 +30,13 @@ export const translations = {
       kicker: '02 — DJ',
       title: 'Musik till din fest.',
       lede:
-        'Jag spelar alla typer av musik och har lagt otaliga fester, bröllop och event i Stockholmsområdet. Skicka en Spotify-lista veckan innan med det ni gillar att dansa till — jag sköter resten.',
-      body: 'Jag tar med komplett DJ-utrustning och högtalare som räcker för 50–150 gäster, och riggen är på plats på en halvtimme till timme. Vid behov fixar jag rökmaskin och ljus via mina DJ-kompisar. Berätta om er kväll i formuläret nedan så återkommer jag med tillgänglighet och pris.',
+        'Jag spelar alla typer av musik och har spelat på otaliga fester, bröllop och event i Stockholmsområdet — helst i Nacka och Värmdö. Skicka en Spotify-lista veckan innan med det ni gillar att dansa till — jag sköter resten.',
+      body: 'Jag utgår från Nacka och Värmdö och tar mig gärna runt i hela Stockholmsområdet. Med mig har jag komplett DJ-utrustning och högtalare som räcker för 50–150 gäster, och riggen är på plats på en halvtimme till timme. Vid behov fixar jag rökmaskin och ljus via mina DJ-kompisar. Berätta om er kväll i formuläret nedan så återkommer jag med tillgänglighet och pris.',
       railTitle: 'Bokning',
       rail: [
         ['Passar', 'Fest · Bröllop · Event'],
-        ['Musik', 'Alla genrer'],
+        ['Musik', 'Alla genrer · Open Format'],
+        ['Område', 'Nacka · Värmdö · Stockholm'],
         ['Så funkar det', 'Er Spotify-lista i förväg'],
         ['Utrustning', 'DJ-rigg + PA, 50–150 gäster'],
       ],
@@ -81,7 +82,7 @@ export const translations = {
     topbar: { mark: 'JK' },
     hero: {
       name: 'Jens Klemets',
-      roles: ['Developer', 'AI', 'technoDJ'],
+      roles: ['Developer', 'AI', 'DJ'],
       intro:
         'Experienced software developer with a burning interest in AI. Away from the keyboard I DJ parties, weddings and events around Stockholm.',
       ctaBook: 'Send a booking request',
@@ -104,12 +105,13 @@ export const translations = {
       kicker: '02 — DJ',
       title: 'Music for your party.',
       lede:
-        'I play all kinds of music and have DJ’d countless parties, weddings and events around Stockholm. Send a Spotify playlist the week before with what you love to dance to — I take care of the rest.',
-      body: 'I bring a full DJ setup and speakers that cover 50–150 guests, up and running in half an hour to an hour. I can also arrange a smoke machine and lighting through my DJ friends. Tell me about your evening in the form below and I’ll get back to you with availability and price.',
+        'I play all kinds of music and have DJ’d countless parties, weddings and events around Stockholm — ideally in Nacka and Värmdö. Send a Spotify playlist the week before with what you love to dance to — I take care of the rest.',
+      body: 'I’m based around Nacka and Värmdö and happily travel across the greater Stockholm area. I bring a full DJ setup and speakers that cover 50–150 guests, up and running in half an hour to an hour. I can also arrange a smoke machine and lighting through my DJ friends. Tell me about your evening in the form below and I’ll get back to you with availability and price.',
       railTitle: 'Booking',
       rail: [
         ['Great for', 'Party · Wedding · Event'],
-        ['Music', 'Any genre'],
+        ['Music', 'Any genre · Open Format'],
+        ['Area', 'Nacka · Värmdö · Stockholm'],
         ['How it works', 'Your Spotify list in advance'],
         ['Gear', 'DJ rig + PA, 50–150 guests'],
       ],

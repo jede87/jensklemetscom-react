@@ -2,7 +2,26 @@
   "permissions": {
     "allow": [
       "Bash(yarn install *)",
-      "Bash(yarn build *)"
+      "Bash(yarn build *)",
+      "Bash(dig +short A jensklemets.com @8.8.8.8)",
+      "Bash(dig +short A jensklemets.com @1.1.1.1)",
+      "Bash(dig +short TXT jensklemets.com @8.8.8.8)",
+      "Bash(dig +short www.jensklemets.com @8.8.8.8)",
+      "Bash(magick -background none -density 400 favicon.svg -resize 512x512 /tmp/jk-512.png)",
+      "Bash(magick /tmp/jk-512.png -resize 48x48 /tmp/jk-48.png)",
+      "Bash(magick /tmp/jk-512.png -resize 32x32 /tmp/jk-32.png)",
+      "Bash(magick /tmp/jk-512.png -resize 16x16 /tmp/jk-16.png)",
+      "Bash(magick /tmp/jk-16.png /tmp/jk-32.png /tmp/jk-48.png favicon.ico)",
+      "Bash(magick /tmp/jk-32.png -format \"%k unique colors\\\\n\" info:)",
+      "Bash(magick -background none -density 150 /private/tmp/claude-501/-Users-jensklemets-Code-jensklemetscom-react/8c547b2e-6225-4cf2-a9d8-4785bb04d190/scratchpad/og-image.svg -resize 1200x630 -background '#f4f1ea' -flatten public/og-image.png)",
+      "Bash(magick -background none -density 150 /private/tmp/claude-501/-Users-jensklemets-Code-jensklemetscom-react/8c547b2e-6225-4cf2-a9d8-4785bb04d190/scratchpad/og-image.svg -resize 1200x630 -background '#f4f1ea' -flatten /Users/jensklemets/Code/jensklemetscom-react/public/og-image.png)",
+      "Read(//System/Library/Fonts/Supplemental/**)",
+      "Bash(magick -list font)",
+      "Bash(magick -size 1200x630 'xc:#f4f1ea' -fill none -stroke '#d3ccbd' -strokewidth 2 -draw 'rectangle 32,32 1168,598' -stroke none -gravity NorthWest -font '/System/Library/Fonts/Supplemental/Courier New.ttf' -pointsize 25 -fill '#6b655c' -annotate +92+112 'DJ  ·  NACKA  ·  VÄRMDÖ  ·  STOCKHOLM' -font '/System/Library/Fonts/Supplemental/Georgia Bold.ttf' -pointsize 122 -fill '#100f0d' -annotate +86+170 'Jens Klemets' -font /System/Library/Fonts/Supplemental/Georgia.ttf -pointsize 37 -fill '#22201c' -annotate +92+360 'DJ för fest, bröllop & event — alla genrer, Open Format.' -font /System/Library/Fonts/Supplemental/Georgia.ttf -pointsize 37 -fill '#6b655c' -annotate +92+418 'Erfaren utvecklare med brinnande AI-intresse.' -fill none -stroke '#d3ccbd' -strokewidth 1.5 -draw 'line 92,545 1108,545' -stroke none -font '/System/Library/Fonts/Supplemental/Courier New.ttf' -pointsize 23 -fill '#6b655c' -annotate +92+562 jensklemets.com -gravity NorthEast -font '/System/Library/Fonts/Supplemental/Courier New.ttf' -pointsize 23 -fill '#6b655c' -annotate +92+562 'Open Format DJ' /Users/jensklemets/Code/jensklemetscom-react/public/og-image.png)",
+      "Bash(curl -sS -I --max-time 15 https://jensklemets.com/)",
+      "Bash(curl -sS -I --max-time 15 https://jensklemets.com/sitemap.xml)",
+      "Bash(curl -sS --max-time 15 https://jensklemets.com/robots.txt)",
+      "Bash(npx --no-install firebase login:list)"
     ]
   }
 }

@@ -17,7 +17,11 @@ export default function Footer() {
               <a href={`mailto:${email}`}>{email}</a>
             </li>
             <li>
-              <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">
+              <a
+                href="https://www.linkedin.com/in/jens-klemets"
+                target="_blank"
+                rel="noreferrer"
+              >
                 {t('footer.linkedin')} ↗
               </a>
             </li>
