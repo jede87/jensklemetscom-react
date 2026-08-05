@@ -21,7 +21,14 @@
       "Bash(curl -sS -I --max-time 15 https://jensklemets.com/)",
       "Bash(curl -sS -I --max-time 15 https://jensklemets.com/sitemap.xml)",
       "Bash(curl -sS --max-time 15 https://jensklemets.com/robots.txt)",
-      "Bash(npx --no-install firebase login:list)"
+      "Bash(npx --no-install firebase login:list)",
+      "Bash(yarn deploy *)",
+      "Bash(curl -sS --max-time 15 https://jensklemets.com/sitemap.xml)",
+      "Bash(curl -sS --max-time 15 https://jensklemets.com/)",
+      "Bash(curl -sS -I --max-time 15 https://jensklemets.com/favicon.svg)",
+      "Bash(curl -sS -I --max-time 15 https://jensklemets.com/og-image.png)",
+      "Bash(curl -sS --max-time 15 -A \"Googlebot/2.1 \\(+http://www.google.com/bot.html\\)\" https://jensklemets.com/sitemap.xml)",
+      "Bash(curl -sS -I --max-time 15 http://jensklemets.com/sitemap.xml)"
     ]
   }
 }
