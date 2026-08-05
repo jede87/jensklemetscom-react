@@ -337,6 +337,17 @@ a:hover {
   gap: 0.45rem;
 }
 
+/* Honeypot: ur vägen utan display:none, som vissa bottar filtrerar bort. */
+.hp {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .field label {
   font-family: var(--font-mono);
   font-size: var(--step--1);

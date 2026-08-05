@@ -1,9 +1,36 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useLang } from '../i18n/LanguageContext.jsx';
 import Reveal from './Reveal.jsx';
 
 const EMPTY = { name: '', email: '', date: '', location: '', message: '' };
 const EMAIL_RE = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
+// Spamskydd: honeypot-fält som bara bottar fyller i, plus en tidsspärr.
+// Backend gör samma kontroller igen — det här är bara första ledet.
+const HONEYPOT = { company: '', website: '' };
+const MIN_FILL_MS = 3500;
+const THROTTLE_KEY = 'jk.booking.sent';
+const THROTTLE_MAX = 3;
+const THROTTLE_WINDOW_MS = 3600000;
+
+function throttled() {
+  try {
+    const sent = JSON.parse(localStorage.getItem(THROTTLE_KEY) || '[]').filter(
+      (ts) => Date.now() - ts < THROTTLE_WINDOW_MS,
+    );
+    return { blocked: sent.length >= THROTTLE_MAX, sent };
+  } catch {
+    return { blocked: false, sent: [] };
+  }
+}
+
+function recordSend(sent) {
+  try {
+    localStorage.setItem(THROTTLE_KEY, JSON.stringify([...sent, Date.now()]));
+  } catch {
+    /* privat läge – strunt samma */
+  }
+}
 
 function todayISO() {
   const d = new Date();
@@ -16,11 +43,22 @@ export default function BookingForm() {
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle'); // idle | submitting | success | error
+  const trap = useRef({ ...HONEYPOT });
+  const startedAt = useRef(0);
   const today = todayISO();
   const endpoint = import.meta.env.VITE_BOOKING_ENDPOINT;
+  const token = import.meta.env.VITE_BOOKING_TOKEN || '';
   const configured = endpoint && !endpoint.includes('XXXXXXXX');
 
-  const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  // Klockan startar vid första tangenttrycket, inte vid sidladdning — annars
+  // skulle en flik som stått öppen en dag se ut som en replay-attack.
+  const set = (key) => (e) => {
+    if (!startedAt.current) startedAt.current = Date.now();
+    setForm((f) => ({ ...f, [key]: e.target.value }));
+  };
+  const setTrap = (key) => (e) => {
+    trap.current[key] = e.target.value;
+  };
 
   const validate = () => {
     const err = {};
@@ -40,14 +78,40 @@ export default function BookingForm() {
       setStatus('error');
       return;
     }
+    // Honeypot ifyllt = bot. Låtsas att allt gick bra, skicka ingenting.
+    if (trap.current.company.trim() || trap.current.website.trim()) {
+      setStatus('success');
+      return;
+    }
+    const { blocked, sent } = throttled();
+    if (blocked) {
+      setStatus('error');
+      return;
+    }
     setStatus('submitting');
+    // Tidsspärr: håll inne en supersnabb submit i stället för att avvisa den,
+    // så att en rekordsnabb människa inte tappas bort.
+    // Autofyll kan hoppa över onChange — sätt klockan här om den inte startat.
+    if (!startedAt.current) startedAt.current = Date.now();
+    const waited = Date.now() - startedAt.current;
+    if (waited < MIN_FILL_MS) {
+      await new Promise((r) => setTimeout(r, MIN_FILL_MS - waited));
+    }
     try {
       await fetch(endpoint, {
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ ...form, lang }),
+        body: JSON.stringify({
+          ...form,
+          lang,
+          token,
+          elapsed: Date.now() - startedAt.current,
+          company: '',
+          website: '',
+        }),
       });
+      recordSend(sent);
       // Response is opaque under no-cors; resolution implies delivery.
       setStatus('success');
       setForm(EMPTY);
@@ -85,6 +149,28 @@ export default function BookingForm() {
 
   return (
     <form className="form" onSubmit={onSubmit} noValidate>
+      {/* Honeypot: osynligt för människor, oemotståndligt för bottar. */}
+      <div className="hp" aria-hidden="true">
+        <label htmlFor="company">Company</label>
+        <input
+          id="company"
+          name="company"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          onChange={setTrap('company')}
+        />
+        <label htmlFor="website">Website</label>
+        <input
+          id="website"
+          name="website"
+          type="text"
+          tabIndex={-1}
+          autoComplete="off"
+          onChange={setTrap('website')}
+        />
+      </div>
+
       {field('name')}
       {field('email', 'email')}
       <div className="form__row">

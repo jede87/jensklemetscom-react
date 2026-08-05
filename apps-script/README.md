@@ -41,10 +41,31 @@ curl -L -X POST "https://script.google.com/macros/s/XXXX/exec" \
 Kolla att ett mejl landar i `jechnotechno@gmail.com` och att en händelse dyker
 upp i kontots standardkalender på datumet.
 
-## Not om `SHARED_SECRET`
+## Spamskydd
 
-Om du sätter en hemlighet i skriptet måste formuläret skicka med samma värde.
-Lägg då till ett dolt fält i payloaden i `src/components/BookingForm.jsx`
-(`body: JSON.stringify({ ...form, lang, token: 'DIN_HEMLIGHET' })`). Eftersom
-värdet bakas in i klientkoden är det ett lätt spamfilter, inte en riktig
-autentisering.
+Ingen captcha, ingen tredjepart. Sju lager, alla i `booking.gs`:
+
+| Lager | Vad som händer |
+| --- | --- |
+| Delad hemlighet | `SHARED_SECRET` måste matcha `VITE_BOOKING_TOKEN` — stoppar skript som aldrig laddat sajten |
+| Honeypot | Dolda fälten `company`/`website` måste vara tomma |
+| Tidsspärr | Under 3 s ifyllnadstid (eller äldre flik än 6 h) = bot |
+| Storleksgränser | Body > 8 kB, meddelande > 2 000 tecken, radbrytningar i namn/e-post → avvisas |
+| Frekvensgränser | 3 per e-postadress/6 h, 15/timme, 40/dygn (skyddar även Gmails sändkvot) |
+| Dubblettspärr | Identisk förfrågan inom en timme skickas inte igen |
+| Länkheuristik | Länkspam **flaggas** med `[MÖJLIG SPAM]` i ämnesraden och hoppar över kalendern — kastas inte, så äkta bokningar aldrig försvinner |
+
+Avvisade anrop får alltid `{ok:true}` tillbaka, så en bot lär sig inget om
+varför. Orsaken loggas i Apps Script → **Executions**.
+
+**Sätt hemligheten** (gör detta, annars är lager 1 avstängt):
+
+1. Generera: `openssl rand -hex 24`
+2. `booking.gs`: `var SHARED_SECRET = '<värdet>';` → deploya ny version
+3. `.env`: `VITE_BOOKING_TOKEN=<samma värde>` → bygg om och deploya sajten
+
+Värdet bakas in i klientkoden och går att läsa i webbläsaren — det är ett
+spamfilter, inte autentisering. Byt det om spammen ändå hittar in.
+
+Vill du justera trösklarna ligger de samlade högst upp i `booking.gs`
+(`MIN_FILL_MS`, `MAX_PER_EMAIL_PER_6H`, `MAX_TOTAL_PER_HOUR`, …).
