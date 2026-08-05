@@ -59,6 +59,9 @@ export const translations = {
         'Din bokningsförfrågan är skickad. Jag återkommer så snart jag kan.',
       errorTitle: 'Något gick fel',
       errorBody: 'Det gick inte att skicka just nu. Mejla mig gärna direkt:',
+      unconfirmedBody:
+        'Förfrågan skickades, men jag fick ingen bekräftelse tillbaka. ' +
+        'Den har troligen kommit fram — vill du vara säker, mejla mig direkt:',
       errNotConfigured:
         'Formuläret är inte kopplat ännu (ingen endpoint konfigurerad).',
       errName: 'Ange ditt namn',
@@ -133,6 +136,9 @@ export const translations = {
       successBody: 'Your booking request has been sent. I’ll get back to you soon.',
       errorTitle: 'Something went wrong',
       errorBody: 'Couldn’t send right now. Feel free to email me directly:',
+      unconfirmedBody:
+        'The request was sent, but I didn’t get a confirmation back. ' +
+        'It most likely arrived — to be sure, email me directly:',
       errNotConfigured: 'The form isn’t connected yet (no endpoint configured).',
       errName: 'Enter your name',
       errEmail: 'Invalid email address',

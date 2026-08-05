@@ -24,6 +24,11 @@ var SHARED_SECRET = '3c2e220c9ac291b1c67f03964d7fe79f5fe2fdb866f348ab';
 
 var NOTIFY_TO = 'jechnotechno@gmail.com';
 
+// Bumpa vid varje ändring. doGet ekar värdet, så du kan öppna /exec i
+// webbläsaren och direkt se vilken kod som faktiskt är distribuerad —
+// "sparad i editorn" och "utrullad" är två olika saker i Apps Script.
+var BUILD = '2026-08-05-c';
+
 // --- tuning knobs -----------------------------------------------------------
 var MIN_FILL_MS = 3000;          // snabbare än så = bot
 var MAX_FILL_MS = 6 * 3600000;   // äldre flik än 6 h = misstänkt/replay
@@ -57,11 +62,11 @@ function doPost(e) {
       return drop_('honeypot');
     }
 
-    // 3. Time trap.
+    // 3. Time trap. För snabbt = bot (tyst). För gammalt kan vara en människa
+    // som gick ifrån datorn — den ska få veta att den behöver ladda om.
     var elapsed = Number(data.elapsed);
-    if (!isFinite(elapsed) || elapsed < MIN_FILL_MS || elapsed > MAX_FILL_MS) {
-      return drop_('timing');
-    }
+    if (!isFinite(elapsed) || elapsed < MIN_FILL_MS) return drop_('timing');
+    if (elapsed > MAX_FILL_MS) return drop_('stale form', 'stale');
 
     var name = String(data.name || '').trim();
     var email = String(data.email || '').trim();
@@ -69,28 +74,31 @@ function doPost(e) {
     var location = String(data.location || '').trim();
     var message = String(data.message || '').trim();
 
-    if (!name || !email || !date || !location) return drop_('missing fields');
-
-    // 4. Size caps och formatkontroll.
+    // 4. Size caps och formatkontroll. Allt här är synligt: en människa med
+    // ett för långt meddelande ska inte tro att bokningen gick fram.
+    if (!name || !email || !date || !location) return drop_('missing fields', 'invalid');
     if (
       name.length > LIMITS.name ||
       email.length > LIMITS.email ||
       location.length > LIMITS.location ||
       message.length > LIMITS.message
     ) {
-      return drop_('too long');
+      return drop_('too long', 'invalid');
     }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) return drop_('bad email');
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return drop_('bad date');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(email)) return drop_('bad email', 'invalid');
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return drop_('bad date', 'invalid');
     // Header injection via replyTo/subject.
-    if (/[\r\n]/.test(email + name + location)) return drop_('control chars');
+    if (/[\r\n]/.test(email + name + location)) return drop_('control chars', 'invalid');
 
     // 5 + 6. Rate limits och dubblettspärr (serialiserat).
     var lock = LockService.getScriptLock();
-    if (!lock.tryLock(5000)) return drop_('busy');
+    if (!lock.tryLock(5000)) return drop_('busy', 'retry');
     try {
       var gate = gate_(email, name + '|' + date + '|' + location + '|' + message);
-      if (gate) return drop_(gate);
+      // Dubblett = den första förfrågan gick igenom. Då är "tack" rätt svar,
+      // inte ett fel — annars mejlar besökaren i onödan.
+      if (gate === 'duplicate') return drop_('duplicate (redan mottagen)');
+      if (gate) return drop_(gate, 'rate');
     } finally {
       lock.releaseLock();
     }
@@ -120,18 +128,26 @@ function doPost(e) {
     });
 
     // Tentative all-day calendar note — bara för icke-flaggade förfrågningar.
+    // Egen try: mejlet är redan skickat, så ett kalenderfel får inte göra att
+    // besökaren tror att bokningen misslyckades och skickar om den.
     if (!suspicious) {
-      var day = new Date(date + 'T00:00:00');
-      CalendarApp.getDefaultCalendar().createAllDayEvent(
-        'DJ-förfrågan: ' + name + ' @ ' + location,
-        day,
-        { description: body },
-      );
+      try {
+        var day = new Date(date + 'T00:00:00');
+        CalendarApp.getDefaultCalendar().createAllDayEvent(
+          'DJ-förfrågan: ' + name + ' @ ' + location,
+          day,
+          { description: body },
+        );
+      } catch (calErr) {
+        console.error('kalendern misslyckades, mejlet gick fram: ' + calErr);
+      }
     }
 
-    return json_({ ok: true });
+    return reply_({ ok: true });
   } catch (err) {
-    return json_({ ok: false, error: String(err) });
+    // Hit når vi bl.a. om Gmails dygnskvot är slut. Besökaren måste få veta.
+    console.error('booking failed: ' + err);
+    return reply_({ ok: false, code: 'server' });
   }
 }
 
@@ -171,10 +187,32 @@ function gate_(email, fingerprint) {
   return '';
 }
 
-/** Svarar neutralt och loggar orsaken i Apps Script-loggen. */
-function drop_(reason) {
+/**
+ * Stoppar en förfrågan och loggar orsaken.
+ *
+ * Utan `code` svarar vi {ok:true} — det gäller botsignalerna (token, honeypot,
+ * för snabb ifyllnad). En bot ska inte kunna kartlägga vilket lager som tog
+ * den, och en människa når aldrig hit eftersom formuläret garanterar dem.
+ *
+ * Med `code` svarar vi {ok:false} — det gäller lägen en människa faktiskt kan
+ * hamna i (kvot, trasig indata). Då måste besökaren få veta att bokningen
+ * inte gick fram, annars försvinner den tyst.
+ */
+function drop_(reason, code) {
   console.warn('booking dropped: ' + reason);
-  return json_({ ok: true }); // säg inget till boten om varför
+  return code ? reply_({ ok: false, code: code }) : reply_({ ok: true });
+}
+
+/**
+ * Svar från doPost. `kind` är avgörande: Googles redirect-kedja studsar ibland
+ * tillbaka till /exec som GET, så att klienten får doGet:s svar i stället för
+ * vårt. Utan markören går ett {ok:false} inte att skilja från den studsen, och
+ * ett avslag skulle kunna visas som ett "tack". Rör den inte utan att ändra
+ * motsvarande kontroll i BookingForm.jsx.
+ */
+function reply_(obj) {
+  obj.kind = 'booking';
+  return json_(obj);
 }
 
 /**
@@ -204,7 +242,7 @@ function testBooking() {
 
 // Simple GET so you can confirm the deployment is live in a browser.
 function doGet() {
-  return json_({ ok: true, service: 'jensklemets booking endpoint' });
+  return json_({ ok: true, service: 'jensklemets booking endpoint', build: BUILD });
 }
 
 function json_(obj) {

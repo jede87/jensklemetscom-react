@@ -26,9 +26,29 @@ Formuläret på sajten POST:ar till en liten Apps Script som körs på ditt
 
 ## Uppdatera koden senare
 
-Ändra i editorn → **Deploy → Manage deployments → (pennan) → New version → Deploy**.
-Redigera **samma** deployment så att `/exec`-URL:en är oförändrad — då behöver du
-inte röra `.env`.
+1. Bumpa `BUILD` överst i `booking.gs`.
+2. Klistra in koden i editorn och **spara** (molnikonen ska vara ren).
+3. **Deploy → Manage deployments → (pennan) → Version: New version → Deploy**.
+
+Två fällor, båda har bitit:
+
+- **Fel dropdown.** Står *Version* kvar på ett befintligt nummer rullas gammal
+  kod ut igen. Den måste ställas på **New version**.
+- **Ny distribution i stället för ny version.** Väljer du *New deployment* får du
+  en **ny `/exec`-URL**, och sajten fortsätter prata med den gamla — som kör
+  gammal kod. Redigera den befintliga distributionen, eller uppdatera
+  `VITE_BOOKING_ENDPOINT` i `.env` och deploya om sajten.
+
+Verifiera alltid efteråt genom att öppna `/exec` i webbläsaren:
+
+```bash
+curl -sL "https://script.google.com/macros/s/XXXX/exec"
+# {"ok":true,"service":"jensklemets booking endpoint","build":"2026-08-05-c"}
+```
+
+Stämmer inte `build` med filen är det gammal kod som ligger ute. Rensa gärna
+bort oanvända distributioner (**Manage deployments → arkivera**) — annars ligger
+gamla `/exec`-URL:er kvar och tar emot POST:ar med föråldrad kod.
 
 ## Testa utan frontend
 

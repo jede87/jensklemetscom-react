@@ -42,7 +42,8 @@ export default function BookingForm() {
   const { t, lang } = useLang();
   const [form, setForm] = useState(EMPTY);
   const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState('idle'); // idle | submitting | success | error
+  // idle | submitting | success | error | unconfirmed (skickat, obekräftat)
+  const [status, setStatus] = useState('idle');
   const trap = useRef({ ...HONEYPOT });
   const startedAt = useRef(0);
   const today = todayISO();
@@ -97,26 +98,50 @@ export default function BookingForm() {
     if (waited < MIN_FILL_MS) {
       await new Promise((r) => setTimeout(r, MIN_FILL_MS - waited));
     }
-    try {
-      await fetch(endpoint, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({
-          ...form,
-          lang,
-          token,
-          elapsed: Date.now() - startedAt.current,
-          company: '',
-          website: '',
-        }),
-      });
+    const payload = JSON.stringify({
+      ...form,
+      lang,
+      token,
+      elapsed: Date.now() - startedAt.current,
+      company: '',
+      website: '',
+    });
+
+    // cors, inte no-cors: Apps Script sätter Access-Control-Allow-Origin på
+    // både redirecten och slutsvaret, så vi kan läsa backendens verdict i
+    // stället för att anta att allt gick bra. text/plain håller det till en
+    // "simple request" — Apps Script kan inte svara på en preflight.
+    // Timeouten är tilltagen: rundturen har uppmätts till allt från 1 till 32 s.
+    const attempt = async () => {
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          signal: AbortSignal.timeout(45000),
+          body: payload,
+        });
+        const data = await res.json();
+        // Utan markören läser vi doGet:s svar, inte doPost:s — Googles
+        // redirect studsar ibland tillbaka till /exec som GET. Då vet vi
+        // ingenting om utfallet och får inte tolka det som ett godkännande.
+        if (data.kind !== 'booking') return 'unknown';
+        return data.ok ? 'ok' : 'fail';
+      } catch {
+        return 'unknown';
+      }
+    };
+
+    // Ett omskick är ofarligt: kom det första fram fångar dubblettspärren i
+    // backend det och svarar ok utan att mejla igen.
+    let verdict = await attempt();
+    if (verdict === 'unknown') verdict = await attempt();
+
+    if (verdict === 'ok') {
       recordSend(sent);
-      // Response is opaque under no-cors; resolution implies delivery.
       setStatus('success');
       setForm(EMPTY);
-    } catch {
-      setStatus('error');
+    } else {
+      setStatus(verdict === 'fail' ? 'error' : 'unconfirmed');
     }
   };
 
@@ -185,9 +210,13 @@ export default function BookingForm() {
         </button>
       </div>
 
-      {status === 'error' && (
+      {(status === 'error' || status === 'unconfirmed') && (
         <p className="form__status">
-          {configured ? t('booking.errorBody') : t('booking.errNotConfigured')}{' '}
+          {status === 'unconfirmed'
+            ? t('booking.unconfirmedBody')
+            : configured
+              ? t('booking.errorBody')
+              : t('booking.errNotConfigured')}{' '}
           <a href={`mailto:${t('footer.email')}`}>{t('footer.email')}</a>
         </p>
       )}
