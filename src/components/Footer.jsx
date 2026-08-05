@@ -26,7 +26,7 @@ export default function Footer() {
               </a>
             </li>
             <li>
-              <a href="https://soundcloud.com/" target="_blank" rel="noreferrer">
+              <a href="https://soundcloud.com/jens-klemets" target="_blank" rel="noreferrer">
                 {t('footer.soundcloud')} ↗
               </a>
             </li>
